@@ -129,6 +129,26 @@ def show_by_category(prompts):
     print(f"\n총 {len(filtered)}개의 프롬프트")
 
 
+def search_prompt(prompts):
+    """제목 또는 내용에 포함된 프롬프트를 검색한다."""
+    print("\n=== 프롬프트 검색 ===")
+    keyword = input_nonempty("검색어")
+
+    results = [
+        p for p in prompts
+        if keyword in p["title"] or keyword in p["content"]
+    ]
+
+    print("\n검색 결과:")
+    if not results:
+        print("검색 결과가 없습니다.")
+        return
+
+    for idx, prompt in enumerate(results, start=1):
+        print(format_prompt_line(idx, prompt))
+    print(f"\n{len(results)}개의 프롬프트를 찾았습니다.")
+
+
 def main():
     prompts = get_default_prompts()
     while True:
@@ -140,6 +160,8 @@ def main():
             show_list(prompts)
         elif choice == "3":
             show_by_category(prompts)
+        elif choice == "4":
+            search_prompt(prompts)
         elif choice == "0":
             print("\n프로그램을 종료합니다. 이용해주셔서 감사합니다!")
             break

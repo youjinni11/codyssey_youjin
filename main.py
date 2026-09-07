@@ -105,6 +105,30 @@ def show_list(prompts):
     print(f"\n총 {len(prompts)}개의 프롬프트")
 
 
+def show_by_category(prompts):
+    """카테고리를 선택하면 해당 카테고리의 프롬프트만 출력한다."""
+    print("\n=== 카테고리별 조회 ===")
+    for idx, category in enumerate(CATEGORIES, start=1):
+        print(f"{idx}) {category}")
+
+    choice = input("선택: ").strip()
+    if not choice.isdigit() or not (1 <= int(choice) <= len(CATEGORIES)):
+        print("잘못된 번호입니다.")
+        return
+
+    selected = CATEGORIES[int(choice) - 1]
+    filtered = [p for p in prompts if p["category"] == selected]
+
+    print(f"\n[{selected}] 카테고리 프롬프트:")
+    if not filtered:
+        print("해당 카테고리에 프롬프트가 없습니다.")
+        return
+
+    for idx, prompt in enumerate(filtered, start=1):
+        print(format_prompt_line(idx, prompt))
+    print(f"\n총 {len(filtered)}개의 프롬프트")
+
+
 def main():
     prompts = get_default_prompts()
     while True:
@@ -114,6 +138,8 @@ def main():
             add_prompt(prompts)
         elif choice == "2":
             show_list(prompts)
+        elif choice == "3":
+            show_by_category(prompts)
         elif choice == "0":
             print("\n프로그램을 종료합니다. 이용해주셔서 감사합니다!")
             break

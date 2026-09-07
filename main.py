@@ -173,6 +173,27 @@ def show_detail(prompts):
     print("─" * 30)
 
 
+def manage_favorite(prompts):
+    """프롬프트 번호를 입력하여 즐겨찾기를 추가/해제한다."""
+    print("\n=== 즐겨찾기 관리 ===")
+    if not prompts:
+        print("등록된 프롬프트가 없습니다.")
+        return
+
+    choice = input("프롬프트 번호 입력: ").strip()
+    if not choice.isdigit() or not (1 <= int(choice) <= len(prompts)):
+        print("잘못된 번호입니다.")
+        return
+
+    prompt = prompts[int(choice) - 1]
+    prompt["favorite"] = not prompt["favorite"]
+
+    if prompt["favorite"]:
+        print(f"\n'{prompt['title']}' 프롬프트를 즐겨찾기에 추가했습니다!")
+    else:
+        print(f"\n'{prompt['title']}' 프롬프트를 즐겨찾기에서 해제했습니다!")
+
+
 def main():
     prompts = get_default_prompts()
     while True:
@@ -188,6 +209,8 @@ def main():
             search_prompt(prompts)
         elif choice == "5":
             show_detail(prompts)
+        elif choice == "6":
+            manage_favorite(prompts)
         elif choice == "0":
             print("\n프로그램을 종료합니다. 이용해주셔서 감사합니다!")
             break

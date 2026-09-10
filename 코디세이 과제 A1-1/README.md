@@ -61,3 +61,24 @@ python3 main.py
 - `manage_favorite()` — 즐겨찾기 토글
 - `show_favorites()` — 즐겨찾기 목록
 - `main()` — 메뉴 루프
+
+
+## 스크린샷
+
+### 개발 환경
+
+![Python/Git 버전 확인](screenshots/01_dev_python_git_version.png)
+![VS Code 프로젝트 폴더](screenshots/02_dev_vscode_project.png)
+
+### 프로그램 실행
+
+![메뉴 화면](screenshots/03_run_menu.png)
+![프롬프트 목록](screenshots/04_run_list.png)
+![프롬프트 추가](screenshots/05_run_add.png)
+![카테고리별 조회](screenshots/06_run_category.png)
+![검색 및 상세 보기](screenshots/07_run_search_detail.png)
+![즐겨찾기 관리 및 종료](screenshots/08_run_favorite_exit.png)
+
+### 커밋 히스토리 (브랜치 병합 포함)
+
+![git log --oneline --graph](screenshots/09_git_log_graph.png)

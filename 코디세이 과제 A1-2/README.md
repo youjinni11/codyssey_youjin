@@ -11,8 +11,12 @@ Python 응용: API 활용 미션 — 여러 API(LLM + 지도)를 조합해 하�
 
 | 용도 | 제공자 | 비고 |
 | --- | --- | --- |
-| LLM (1차 추천 / 최종 리포트 생성) | OpenAI Chat Completions API (`gpt-4o-mini`) | 유료(과금) — 호출 비용 발생 |
+| LLM (1차 추천 / 최종 리포트 생성) | Google Gemini API (`gemini-3.8-flash`, generateContent) | 무료 — [aistudio.google.com](https://aistudio.google.com)에서 신용카드 없이 즉시 발급 |
 | 지도/장소 검색 (맛집 검색) | Kakao Local API (키워드 검색) | 무료 |
+
+> 참고: Cursor 구독이나 Google One/Gemini Advanced(Gemini 앱 유료 구독)는 이 프로그램이 쓰는
+> **Gemini API 키**와는 별개입니다. API 키는 위 링크(Google AI Studio)에서 구글 계정으로
+> 로그인만 하면 무료로 따로 발급받아야 합니다.
 
 ## 실행 방법
 
@@ -38,29 +42,34 @@ pip install -r requirements.txt
 2. `.env` 파일을 열어 아래 두 값을 본인의 키로 채워 넣습니다.
 
    ```
-   OPENAI_API_KEY="sk-..."
+   GEMINI_API_KEY="..."
    KAKAO_REST_API_KEY="..."
    ```
 
-   - OpenAI API 키 발급: https://platform.openai.com/api-keys
+   - Gemini API 키 발급: https://aistudio.google.com → 구글 계정 로그인 → "Get API key" →
+     신용카드 등록 없이 즉시 무료 발급 (무료 등급으로 이 프로그램 사용에 충분)
    - Kakao REST API 키 발급: https://developers.kakao.com (애플리케이션 추가 후 "REST API 키" 확인)
 
    `.env` 대신 터미널에서 직접 환경변수로 설정해도 됩니다.
 
    ```bash
    # macOS/Linux (현재 터미널 세션에만 적용)
-   export OPENAI_API_KEY="sk-..."
+   export GEMINI_API_KEY="..."
    export KAKAO_REST_API_KEY="..."
    ```
 
    ```powershell
    # Windows PowerShell (현재 세션에만 적용)
-   $env:OPENAI_API_KEY="sk-..."
+   $env:GEMINI_API_KEY="..."
    $env:KAKAO_REST_API_KEY="..."
    ```
 
 3. 두 키 중 하나라도 설정되어 있지 않으면 프로그램은 즉시 종료되며,
    위와 같은 설정 방법을 화면에 안내합니다.
+
+   필요하면 `GEMINI_MODEL` 환경변수로 사용할 모델을 바꿀 수도 있습니다
+   (기본값: `gemini-3.8-flash`). 구글이 새 모델을 출시해 이름이 바뀌더라도
+   코드를 고치지 않고 환경변수만 바꾸면 됩니다.
 
 ### 3) 프로그램 실행
 
@@ -98,7 +107,7 @@ python3 travel_planner.py --date "2026-03-15"
 ## 기능 요약
 
 1. `argparse` 기반 CLI, `--date "YYYY-MM-DD"` 필수 옵션과 형식 검증
-2. LLM(OpenAI)에게 날짜를 주고 `recommended_city / weather / events / reason` 구조의 JSON을 요청 (파싱 실패 시 1회 재시도)
+2. LLM(Gemini)에게 날짜를 주고 `recommended_city / weather / events / reason` 구조의 JSON을 요청 (파싱 실패 시 1회 재시도)
 3. 추천된 도시로 Kakao Local API를 호출해 맛집 최대 5곳 검색 (검색 결과 0건이어도 중단되지 않음)
 4. 1차 추천 + 맛집 목록을 다시 LLM에 전달해 최종 Markdown 리포트 생성 (실패 시 템플릿으로 대체 생성)
 5. 모든 단계의 오류(인증/쿼터/네트워크/파싱)는 `errors` 리스트로 수집되어 원본 JSON과 리포트 하단에 함께 기록됨
@@ -113,7 +122,7 @@ python3 travel_planner.py --date "2026-03-15"
   - 실수로 키가 공개 저장소에 노출되는 사고를 막을 수 있습니다.
   - 키를 교체하더라도 코드를 수정할 필요가 없습니다.
   - 과금/쿼터가 걸린 서비스에서 키 유출로 인한 비용 사고를 예방할 수 있습니다.
-- 만약 실수로 키를 커밋했다면, 즉시 해당 서비스(OpenAI/Kakao)에서 키를
+- 만약 실수로 키를 커밋했다면, 즉시 해당 서비스(Google AI Studio/Kakao)에서 키를
   폐기(revoke)하고 새 키를 발급받아야 합니다. `git log`에서 지워도
   과거 커밋 기록에는 남아있을 수 있기 때문입니다.
 

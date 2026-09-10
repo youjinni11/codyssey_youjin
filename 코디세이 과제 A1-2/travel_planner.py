@@ -3,15 +3,16 @@
 Python 응용: API 활용 미션 (LLM API + 지도/장소 검색 API 연동)
 
 사용된 API:
-    - LLM: OpenAI Chat Completions API (gpt-4o-mini)
+    - LLM: Google Gemini API (generateContent, 기본 모델 gemini-3.8-flash)
     - 지도/장소 검색: Kakao Local API (키워드 검색)
 
 실행 방법:
     python3 travel_planner.py --date "2026-03-15"
 
 필요한 환경변수 (.env 파일 또는 시스템 환경변수):
-    OPENAI_API_KEY       - OpenAI API 키
-    KAKAO_REST_API_KEY   - Kakao REST API 키
+    GEMINI_API_KEY        - Google AI Studio에서 발급받은 Gemini API 키
+    KAKAO_REST_API_KEY    - Kakao REST API 키
+    GEMINI_MODEL (선택)   - 사용할 Gemini 모델 ID (기본값: gemini-3.8-flash)
 """
 
 import argparse
@@ -34,10 +35,15 @@ except ImportError:
     pass
 
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 KAKAO_API_KEY = os.environ.get("KAKAO_REST_API_KEY")
 
-OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
+# 모델명은 구글이 새 버전을 낼 때마다 바뀔 수 있으므로, 환경변수로 바꿀 수 있게 하고
+# 기본값은 2026-09 기준 정식 출시(GA)된 최신 Flash 모델로 둔다.
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
+GEMINI_API_URL = (
+    f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+)
 KAKAO_LOCAL_URL = "https://dapi.kakao.com/v2/local/search/keyword.json"
 
 RESULTS_DIR = Path("results")
@@ -78,8 +84,8 @@ def parse_args():
 def check_api_keys():
     """필수 API 키가 설정되어 있는지 확인하고, 없으면 안내 후 종료한다."""
     missing = []
-    if not OPENAI_API_KEY:
-        missing.append("OPENAI_API_KEY")
+    if not GEMINI_API_KEY:
+        missing.append("GEMINI_API_KEY")
     if not KAKAO_API_KEY:
         missing.append("KAKAO_REST_API_KEY")
 
@@ -87,12 +93,14 @@ def check_api_keys():
         print("오류: 다음 API 키가 설정되지 않았습니다 -> " + ", ".join(missing))
         print()
         print("설정 방법 (프로젝트 루트에 .env 파일을 만들고 아래처럼 입력):")
-        print('  OPENAI_API_KEY="sk-..."')
+        print('  GEMINI_API_KEY="..."')
         print('  KAKAO_REST_API_KEY="..."')
         print()
-        print("또는 터미널에서 환경변수로 직접 설정할 수도 있습니다:")
-        print('  export OPENAI_API_KEY="sk-..."')
+        print("또는 터미널에서 환경변수로 걁접 설정할 수도 있습니다:")
+        print('  export GEMINI_API_KEY="..."')
         print('  export KAKAO_REST_API_KEY="..."')
+        print()
+        print("Gemini API 키는 https://aistudio.google.com 에서 무료로, 신용카드 없이 즉시 발급받을 수 있습니다.")
         sys.exit(1)
 
 
@@ -100,42 +108,43 @@ def check_api_keys():
 # 1. LLM 호출 공통 함수
 # ---------------------------------------------------------------------------
 
-def call_openai_chat(prompt, errors, system_prompt=None):
-    """OpenAI Chat Completions API를 호출하고 응답 텍스트를 반환한다.
+def call_gemini(prompt, errors, system_prompt=None):
+    """Google Gemini API(generateContent)를 호출하고 응답 텍스트를 반환한다.
 
     실패 시 None을 반환하고 errors 리스트에 오류를 기록한다.
+    API 키는 헤더가 아니라 URL 쿼리 파라미터(?key=...)로 전달한다 (Gemini API 방식).
     """
     body = {
-        "model": "gpt-4o-mini",
-        "messages": [
-            {
-                "role": "system",
-                "content": system_prompt
-                or "당신은 한국 국내 여행 전문가입니다. 요청받은 형식을 정확히 지켜 답변하세요.",
-            },
-            {"role": "user", "content": prompt},
+        "contents": [
+            {"role": "user", "parts": [{"text": prompt}]},
         ],
-        "temperature": 0.7,
+        "systemInstruction": {
+            "parts": [
+                {
+                    "text": system_prompt
+                    or "당신은 한국 국내 여행 전문가입니다. 요청받은 형식을 정확히 지켜 답변하세요."
+                }
+            ]
+        },
+        "generationConfig": {"temperature": 0.7},
     }
 
+    url = f"{GEMINI_API_URL}?{urllib.parse.urlencode({'key': GEMINI_API_KEY})}"
     req = urllib.request.Request(
-        OPENAI_CHAT_URL,
+        url,
         data=json.dumps(body).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json",
-        },
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
 
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            return data["choices"][0]["message"]["content"]
+            return data["candidates"][0]["content"]["parts"][0]["text"]
     except urllib.error.HTTPError as e:
         if e.code in (401, 403):
             errors.append(
-                {"step": "llm_call", "type": "AUTH_ERROR", "message": f"HTTP {e.code} - OpenAI API 키를 확인하세요."}
+                {"step": "llm_call", "type": "AUTH_ERROR", "message": f"HTTP {e.code} - Gemini API 키를 확인하세요."}
             )
         elif e.code == 429:
             errors.append(
@@ -146,6 +155,13 @@ def call_openai_chat(prompt, errors, system_prompt=None):
         return None
     except urllib.error.URLError as e:
         errors.append({"step": "llm_call", "type": "NETWORK_ERROR", "message": str(e.reason)})
+        return None
+    except (KeyError, IndexError) as e:
+        # 응답은 왔지만 예상한 구조(candidates/content/parts)가 아닌 경우
+        # (예: 안전 필터에 걸려 콘텐츠가 차단된 경우 등)
+        errors.append(
+            {"step": "llm_call", "type": "UNKNOWN_ERROR", "message": f"예상치 못한 응답 형식: {e}"}
+        )
         return None
     except Exception as e:  # noqa: BLE001 - 예상 못한 오류도 리포트에 남기고 계속 진행한다.
         errors.append({"step": "llm_call", "type": "UNKNOWN_ERROR", "message": str(e)})
@@ -197,7 +213,7 @@ def build_recommendation_prompt(date):
 def get_recommendation(date, errors):
     """1차 추천 JSON을 받는다. 파싱 실패 시 1회 재시도한다."""
     prompt = build_recommendation_prompt(date)
-    text = call_openai_chat(prompt, errors)
+    text = call_gemini(prompt, errors)
     result = extract_json(text)
 
     if result is None:
@@ -206,7 +222,7 @@ def get_recommendation(date, errors):
             prompt
             + "\n\n중요: JSON 객체 하나만 출력하세요. 설명 문장, 코드블록 표시를 포함하지 마세요."
         )
-        text = call_openai_chat(retry_prompt, errors)
+        text = call_gemini(retry_prompt, errors)
         result = extract_json(text)
 
     if result is None:
@@ -312,7 +328,7 @@ def build_report_prompt(date, recommendation, restaurants):
 맛집 목록:
 {format_restaurants_for_prompt(restaurants)}
 
-반드시 아래 마크다운 형식(헤더 구조)을 그대로 지켜서 작성하세요:
+반드시 아래 마크다운 형식을 그대로 지켜서 작성하세요:
 
 # {date} 국내 여행 추천 리포트
 ## 추천 지역
@@ -368,7 +384,7 @@ def build_fallback_report(date, recommendation, restaurants):
 def generate_report(date, recommendation, restaurants, errors):
     """최종 여행 리포트를 마크다운 텍스트로 생성한다. LLM 실패 시 템플릿으로 대체."""
     prompt = build_report_prompt(date, recommendation, restaurants)
-    text = call_openai_chat(
+    text = call_gemini(
         prompt,
         errors,
         system_prompt="당신은 여행 리포트를 작성하는 어시스턴트입니다. 요청받은 마크다운 형식을 정확히 따르세요.",

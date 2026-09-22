@@ -62,7 +62,7 @@ brief.json → 검증 → [LLM] 네이밍 → [LLM] 슬로건 → [LLM] 스토�
 - **텍스트**: OpenAI Chat Completions(`gpt-4o-mini`), `response_format=json_object` 로 JSON 응답 강제. `BRAND_TEXT_PROVIDER=gemini` 로 바꾸면 Gemini `generateContent` 사용.
 - **이미지**: OpenAI Images API(`gpt-image-1-mini`, quality=low)로 로고를 생성해 PNG 저장. DALL-E 2/3 은 2026-05-12 에 OpenAI API 에서 제거되어, 후속 모델인 gpt-image 계열을 사용합니다. `BRAND_IMAGE_PROVIDER=huggingface`(무료 크레딧, `pip install huggingface_hub`, HF_TOKEN 필요) 또는 `gemini`(유료 티어 필요)로 바꿀 수도 있습니다. 로고마다 스타일 문구를 달리해 시안을 다양화. 이미지 속 글자 깨짐을 막기 위해 "no text" 로 심볼 중심 생성.
 - 모델은 환경변수 `BRAND_TEXT_MODEL`, `BRAND_OPENAI_IMAGE_MODEL`(HF/Gemini용은 `BRAND_HF_IMAGE_MODEL`/`BRAND_IMAGE_MODEL`) 로 교체 가능.
-- **코디세이 공개 API**: `OPENAI_BASE_URL`에 `codyssey`가 포함되어 있으면(`https://copa.codyssey.kr/v1`) 텍스트는 OpenAI 와 동일한 `/v1/chat/completions` 로, 이미지는 경로(`/api/v1/images`)와 응답 구조(`result.images[].b64_json`, OpenAI 는 `data[].b64_json`)가 달라 코드가 자동으로 이 방식으로 전환해 호출합니다.
+- **코디세이 공개 API**: `OPENAI_BASE_URL`에 `codyssey`가 포함되어 있으면(`https://copa.codyssey.kr/v1`) 텍스트는 OpenAI 와 동일한 `/v1/chat/completions` 로, 이미지는 경로(`/api/v1/images`)와 응답 구조(`result.images[].b64_json`, OpenAI 는 `data[].b64_json`)가 달라 코드가 자동으로 이 방식으로 전환해 호출합니다. 이 API는 `response_format`(JSON 강제 응답) 파라미터를 지원하지 않아(400 unsupported_feature) 이때는 자동으로 빼고, 대신 프롬프트로 JSON만 출력하도록 지시하고 응답이 ```코드블록으로 감싸져 와도 파싱하도록 처리합니다.
 
 ## 6. 에러 처리
 

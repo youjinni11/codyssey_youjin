@@ -62,23 +62,41 @@ python3 main.py
 - `show_favorites()` — 즐겨찾기 목록
 - `main()` — 메뉴 루프
 
+## Git 명령어 사용 기록
+
+이 프로젝트를 진행하며 실제로 사용한 Git 명령어와, 각각을 어떤 목적으로 썼는지 정리합니다.
+
+| 명령어 | 언제 / 왜 사용했나 |
+| --- | --- |
+| `git init` | 새 로컬 저장소를 실제로 초기화하는 과정을 익히기 위해, 별도의 연습용 폴더(`git-init-demo`)를 만들어 `git init` → `git add` → `git commit`까지 직접 수행해봤습니다 (스크린샷 참고, 확인 후 폴더 삭제). 이번 과제의 본 저장소(`codyssey_youjin`)는 이전 미션(B1-3 등)에서부터 이어서 사용 중인 저장소라 `git clone`으로 받아와 작업을 이어갔습니다. |
+| `git config --global user.name / user.email / init.defaultBranch` | 개발 환경을 준비하며 Git 커밋에 기록될 작성자 정보(이름, 이메일)와 새 저장소의 기본 브랜치 이름(`main`)을 전역 설정으로 등록했습니다. |
+| `git clone` | (1) 이 프로젝트 저장소 자체를 로컬 컴퓨터로 받아올 때, (2) Git 학습 목적으로 공개 샘플 저장소(`octocat/Hello-World`)를 별도로 clone해서 폴더 구조와 `git log`를 확인해봤습니다 (확인 후 삭제). |
+| `git add` | 기능을 하나씩 완성할 때마다 변경된 파일을 스테이징 영역에 올릴 때 사용했습니다. |
+| `git commit` | `add_prompt()`, `search_prompt()`, `manage_favorite()` 등 기능 단위로 커밋 메시지를 남기며 스냅샷을 저장했습니다. (총 10개 이상의 기능 단위 커밋) |
+| `git branch` / `git checkout -b feature/list-view` | "프롬프트 목록" 기능(`show_list()`)을 `main`과 분리된 `feature/list-view` 브랜치에서 작업하기 위해 브랜치를 만들고 전환했습니다. |
+| `git checkout main` + `git merge feature/list-view` | `feature/list-view` 브랜치에서 기능 구현을 마친 뒤 `main` 브랜치로 돌아와 병합했습니다. (`git log --oneline --graph` 스크린샷에서 병합 지점 확인 가능) |
+| `git push` | 로컬에서 만든 커밋들을 GitHub 원격 저장소에 업로드할 때마다 사용했습니다. |
+| `git pull` | 다른 세션/기기에서 작업을 이어갈 때 원격 저장소의 최신 상태를 로컬에 반영하기 위해 사용했습니다 (실행 시 "Already up to date" 확인). |
 
 ## 스크린샷
 
 ### 개발 환경
 
-![Python/Git 버전 확인](screenshots/01_dev_python_git_version.png)
-![VS Code 프로젝트 폴더](screenshots/02_dev_vscode_project.png)
+![Python/Git 버전 확인 및 Hello World 실행, 공개 저장소 clone 실습](screenshots/01_dev_python_git_version.png)
+![git 사용자 정보(이름/이메일/기본 브랜치) 전역 설정](screenshots/02_dev_git_user_config.png)
+![VS Code 프로젝트 폴더](screenshots/03_dev_vscode_project.png)
+![VS Code-GitHub 계정 로그인 연동 확인](screenshots/04_dev_vscode_github_login.png)
+![git init 연습 (연습용 폴더에서 init/add/commit)](screenshots/12_git_init_demo.png)
 
 ### 프로그램 실행
 
-![메뉴 화면](screenshots/03_run_menu.png)
-![프롬프트 목록](screenshots/04_run_list.png)
-![프롬프트 추가](screenshots/05_run_add.png)
-![카테고리별 조회](screenshots/06_run_category.png)
-![검색 및 상세 보기](screenshots/07_run_search_detail.png)
-![즐겨찾기 관리 및 종료](screenshots/08_run_favorite_exit.png)
+![메뉴 화면](screenshots/05_run_menu.png)
+![프롬프트 목록](screenshots/06_run_list.png)
+![프롬프트 추가](screenshots/07_run_add.png)
+![카테고리별 조회](screenshots/08_run_category.png)
+![검색 및 상세 보기](screenshots/09_run_search_detail.png)
+![즐겨찾기 관리 및 종료](screenshots/10_run_favorite_exit.png)
 
 ### 커밋 히스토리 (브랜치 병합 포함)
 
-![git log --oneline --graph](screenshots/09_git_log_graph.png)
+![git log --oneline --graph](screenshots/11_git_log_graph.png)
